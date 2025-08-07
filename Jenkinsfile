@@ -49,6 +49,19 @@ pipeline {
                 }
             }
         }
+        stage('sonarqube analysis'){
+            steps{
+                withSonarQubeEnv("MySonarqube_mira"){
+                    script{
+                        def scannerHome = tool "SonarScanner"
+                        sh '''
+                            ${scannerHome}/bin/sonar-scanner \
+                        '''
+                    }
+                }
+            }
+        }
+
 
     }
 
