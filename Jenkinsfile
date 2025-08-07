@@ -54,9 +54,9 @@ pipeline {
                 withSonarQubeEnv("MySonarqube_mira"){
                     script{
                         def scannerHome = tool "SonarScanner"
-                        sh '''
+                        sh  """
                             ${scannerHome}/bin/sonar-scanner \
-                        '''
+                        """
                     }
                 }
             }
