@@ -18,6 +18,7 @@ pipeline {
         steps{
             sh '''
                 # Run tests with coverage reporting
+                . venv/bin/activate
                         pytest \
                             --cov=. \
                             --cov-report=xml:coverage.xml \
