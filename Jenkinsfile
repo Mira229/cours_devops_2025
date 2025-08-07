@@ -1,25 +1,7 @@
 pipeline {
     agent any
 
-    environment {
-        PROJECT = "cours_devops_session_3" // à modifier avec votre projet
-        REPOSITORY = "fastapi-postgres"
-        IMAGE = "$PROJECT/$REPOSITORY"
-        REGISTRY_HOST = "https://harbor.devgauss.com"
-    }
 
-    parameters {
-        choice(
-            name: 'ENVIRONMENT',
-            choices: ['development', 'staging', 'production'],
-            description: 'Target environment'
-        )
-        booleanParam(
-            name: 'SKIP_TESTS',
-            defaultValue: true,
-            description: 'Skip test execution'
-        )
-    }
 
     stages {
         stage('Set up Python') {
@@ -35,78 +17,7 @@ pipeline {
 
 
 
-        stage('Run Tests') {
-            when {
-                expression { return !params.SKIP_TESTS }
-            }
-            steps {
-                sh '''
-                    . venv/bin/activate
-                    # Install additional test dependencies if needed
-                    pip install pytest-xdist
 
-                    # Run tests with JUnit report for better visualization in Jenkins
-                    pytest --junitxml=test-results.xml
-
-                    # Run tests with coverage reporting
-                    pytest \
-                        --cov=. \
-                        --cov-report=xml:coverage.xml \
-                        --cov-report=html:htmlcov \
-                        --cov-report=term \
-                        --cov-fail-under=95
-                '''
-            }
-            post {
-                always {
-                    // Archive test artifacts and coverage reports
-                    archiveArtifacts artifacts: 'coverage.xml,htmlcov/**/*,test-results.xml', allowEmptyArchive: true
-
-                    // Publish JUnit test results
-                    junit 'test-results.xml'
-
-                    // Publish HTML coverage report
-                    publishHTML(target: [
-                        allowMissing: false,
-                        alwaysLinkToLastBuild: true,
-                        keepAll: true,
-                        reportDir: 'htmlcov',
-                        reportFiles: 'index.html',
-                        reportName: 'Coverage Report'
-                    ])
-                }
-            }
-        }
-
-        stage('Build and Push Docker Image') {
-            when {
-                expression {
-                    return env.CHANGE_ID == null // Skip for pull requests
-                }
-            }
-            steps {
-                script {
-                    def image = docker.build("$IMAGE:${env.BUILD_ID}")
-                    docker.withRegistry("$REGISTRY_HOST", 'registry-credentials-fadel') { // Créez un credentials de type Username Password avec les accès de votre compte robot Harbor
-                        image.push()
-                        image.push('latest')
-                    }
-                }
-            }
-        }
-    }
-
-    post {
-        always {
-            cleanWs()
-        }
-        success {
-            echo 'Pipeline succeeded!'
-        }
-        failure {
-            echo 'Pipeline failed!'
-        }
-    }
 }
 
 
