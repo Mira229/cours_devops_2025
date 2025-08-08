@@ -1,6 +1,12 @@
 pipeline {
     agent any
 
+    environment{
+        PROJECT = "test_mira"
+        REPOSITORY = "fastapi_postgres"
+        IMAGE = "$PROJECT/$REPOSITORY"
+        REGISTRY_HOST = "https://harbor.devgauss.com/"
+    }
 
 
     stages {
@@ -62,7 +68,17 @@ pipeline {
             }
         }
 
-
+        stage('build_push_docker_image'){
+            steps{
+                script{
+                    def image = docker.build("$IMAGE:${env.BUILD_ID}")
+                    docker.withRegistry("$REGISTRY_HOST", 'mira_credential_harbor'){
+                        image.push()
+                        image.push(latest)
+                    }
+                }
+            }
+        }
     }
 
 
