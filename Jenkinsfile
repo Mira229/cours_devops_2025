@@ -74,6 +74,7 @@ pipeline {
                     def image = docker.build("$IMAGE:${env.BUILD_ID}")
                     docker.withRegistry("$REGISTRY_HOST", 'mira_credential_harbor'){
                         image.push()
+
                         image.push("latest")
                     }
                 }
