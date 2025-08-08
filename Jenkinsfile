@@ -68,6 +68,16 @@ pipeline {
             }
         }
 
+        stage('quality_gate'){
+            steps{
+                timeout(time: 5, unit: 'MINUTES'){
+                   waitForQualityGate abortPipeline: true
+                }
+
+            }
+        }
+
+
         stage('build_push_docker_image'){
             steps{
                 script{
@@ -80,6 +90,7 @@ pipeline {
                 }
             }
         }
+
     }
 
 
